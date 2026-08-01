@@ -57,11 +57,11 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 lg:px-8 mt-6 mb-4">
-      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 scrollbar-none">
+    <div className="w-full max-w-7xl mx-auto px-4 lg:px-8 mt-5 mb-4 overflow-hidden">
+      <div className="w-full overflow-x-auto no-scrollbar touch-pan-x py-1">
         
         {/* Category Tab Buttons */}
-        <div className="flex items-center gap-2.5 flex-nowrap">
+        <div className="flex items-center gap-2.5 flex-nowrap min-w-max pb-1">
           {categories.map((cat) => {
             const isActive = activeCategoryId === cat.id;
             const isUnlocked = checkCategoryAccess(cat.id);
@@ -70,7 +70,7 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
               <div
                 key={cat.id}
                 onClick={() => handleTabClick(cat)}
-                className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer select-none transition-all duration-200 ${
+                className={`group relative shrink-0 flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer select-none transition-all duration-200 ${
                   isActive
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/25 font-semibold ring-1 ring-white/20'
                     : 'glass-card text-slate-300 hover:text-white hover:bg-slate-800/80 font-medium'
@@ -80,7 +80,7 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
                 {getCategoryIcon(cat.icon, cat.isProtected, isUnlocked)}
 
                 {/* Name */}
-                <span className="text-sm whitespace-nowrap">{cat.name}</span>
+                <span className="text-xs sm:text-sm whitespace-nowrap">{cat.name}</span>
 
                 {/* Protected indicator */}
                 {cat.isProtected && (
@@ -113,7 +113,7 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
           {/* Add Category Button */}
           <button
             onClick={() => onOpenCategoryModal(null)}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl glass-card text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 border-dashed border-indigo-500/40 transition-all whitespace-nowrap"
+            className="shrink-0 flex items-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-xl glass-card text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 border-dashed border-indigo-500/40 transition-all whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>新增分類</span>
