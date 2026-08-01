@@ -21,6 +21,20 @@ export default function AuthModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  const formatAuthError = (err) => {
+    const message = err?.message || '';
+    if (message.includes('auth/api-key-not-valid') || message.includes('api-key')) {
+      return '⚠️ 雲端資料庫尚未設定：目前系統使用的是預設 Key。請填入您的 Firebase 專案金鑰以開啟線上同步功能，或直接點選下方「本機訪客模式」免費使用。';
+    }
+    if (message.includes('auth/user-not-found') || message.includes('auth/wrong-password') || message.includes('invalid-credential')) {
+      return '帳號或密碼不正確，請重新檢查。';
+    }
+    if (message.includes('auth/email-already-in-use')) {
+      return '此 Email 已被註冊，請直接登入。';
+    }
+    return message || '登入失敗，請稍後再試。';
+  };
+
   const handleGoogleLogin = async () => {
     setErrorMsg('');
     setLoading(true);
@@ -28,7 +42,7 @@ export default function AuthModal({ isOpen, onClose }) {
       await loginWithGoogle();
       onClose();
     } catch (err) {
-      setErrorMsg(err.message || 'Google 登入失敗，請稍後再試。');
+      setErrorMsg(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -46,7 +60,7 @@ export default function AuthModal({ isOpen, onClose }) {
       }
       onClose();
     } catch (err) {
-      setErrorMsg(err.message || '登入失敗，請檢查帳號密碼。');
+      setErrorMsg(formatAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -77,6 +91,13 @@ export default function AuthModal({ isOpen, onClose }) {
               : '登入後可於手機與電腦端自動秒級同步所有網址書籤與分類'}
           </p>
         </div>
+
+        {/* Demo Mode Notice */}
+        {!currentUser && (
+          <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs leading-relaxed">
+            💡 <strong>免責與使用說明：</strong> App 目前使用預設展示 API Key。無須登入即可使用【本機訪客模式】離線儲存所有書籤；若要啟用真正的跨裝置雲端同步，只需填入您自己的免費 Firebase 專案設定檔。
+          </div>
+        )}
 
         {/* If user is already logged in */}
         {currentUser ? (
