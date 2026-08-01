@@ -1,18 +1,6 @@
-const CACHE_NAME = 'nexus-mark-cache-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './pwa-192x192.png',
-  './pwa-512x512.png'
-];
+const CACHE_NAME = 'nexus-mark-v2';
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -31,10 +19,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network First strategy: try network first, fallback to cache if offline
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
