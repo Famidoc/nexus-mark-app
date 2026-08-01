@@ -21,14 +21,14 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 
-// Default Firebase Configuration (Users can replace this with their own Firebase credentials)
+// Firebase Configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDemoKeyForBookmarkApp2026",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bookmark-app-demo.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bookmark-app-demo",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bookmark-app-demo.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:1234567890:web:abcdef123456"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBy-YXQ2GU27pIgMlLBJ5IwqAN-oKKtJVM",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "nexus-mark-f2d80.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "nexus-mark-f2d80",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "nexus-mark-f2d80.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "728071560930",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:728071560930:web:00c49e6673010adbd0c8bb"
 };
 
 let app, auth, db;
