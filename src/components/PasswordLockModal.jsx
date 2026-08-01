@@ -79,7 +79,7 @@ export default function PasswordLockModal() {
           )}
 
           <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 text-left">
-            <span className="text-amber-400 font-medium">💡 測試提示：</span> 示範解鎖 PIN 碼為 <code className="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">1234</code>。
+            <span className="text-amber-400 font-medium">💡 解鎖與修改提示：</span> 預設解鎖密碼為 <code className="bg-slate-800 text-amber-300 px-1 py-0.5 rounded">1234</code>。成功解鎖後，點擊頁面上的「管理此分類分頁」即可隨時更改自訂密碼！
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-2">
