@@ -241,8 +241,36 @@ export function BookmarkProvider({ children }) {
     saveBookmarks(updated);
   };
 
+  const [isRandomSort, setIsRandomSort] = useState(false);
+  const [shuffleSeed, setShuffleSeed] = useState(0);
+
+  const triggerRandomSort = () => {
+    setIsRandomSort(true);
+    setShuffleSeed(Date.now());
+  };
+
+  const resetSortMode = () => {
+    setIsRandomSort(false);
+  };
+
+  // Helper to check duplicates in specific tab category
+  const checkTabDuplicates = (inputUrl, targetCategoryId = activeCategoryId) => {
+    if (!inputUrl || !inputUrl.trim()) return [];
+    const normalize = (u) => u ? u.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '') : '';
+    const normQuery = normalize(inputUrl);
+    const rawQueryLower = inputUrl.trim().toLowerCase();
+
+    const targetList = bookmarks.filter(b => b.categoryId === targetCategoryId);
+    return targetList.filter(bm => {
+      const bmNorm = normalize(bm.url);
+      const isUrlMatch = bmNorm && normQuery && (bmNorm === normQuery || bmNorm.includes(normQuery) || normQuery.includes(bmNorm));
+      const isTitleMatch = rawQueryLower.length >= 2 && bm.title && bm.title.toLowerCase().includes(rawQueryLower);
+      return isUrlMatch || isTitleMatch;
+    });
+  };
+
   // Filtered Bookmarks by active category & search query
-  const filteredBookmarks = bookmarks.filter(bm => {
+  let filteredBookmarks = bookmarks.filter(bm => {
     const matchesCategory = bm.categoryId === activeCategoryId;
     if (!matchesCategory) return false;
 
@@ -256,12 +284,26 @@ export function BookmarkProvider({ children }) {
     );
   });
 
+  // Apply Random Shuffle if active
+  if (isRandomSort && filteredBookmarks.length > 0) {
+    const arr = [...filteredBookmarks];
+    // Deterministic or time-seeded Fisher-Yates shuffle
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    filteredBookmarks = arr;
+  }
+
   return (
     <BookmarkContext.Provider value={{
       categories,
       bookmarks,
       activeCategoryId,
-      setActiveCategoryId,
+      setActiveCategoryId: (id) => {
+        setActiveCategoryId(id);
+        setIsRandomSort(false); // Reset random sort when switching category
+      },
       checkCategoryAccess,
       unlockCategory,
       lockCategory,
@@ -277,6 +319,10 @@ export function BookmarkProvider({ children }) {
       setSearchQuery,
       viewMode,
       setViewMode,
+      isRandomSort,
+      triggerRandomSort,
+      resetSortMode,
+      checkTabDuplicates,
       activePreviewUrl,
       setActivePreviewUrl,
       isBookmarkModalOpen,

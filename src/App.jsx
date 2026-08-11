@@ -19,7 +19,8 @@ import {
   Sparkles, 
   FolderOpen, 
   ShieldCheck, 
-  Compass 
+  Compass,
+  Shuffle
 } from 'lucide-react';
 
 function MainApp() {
@@ -30,6 +31,9 @@ function MainApp() {
     checkCategoryAccess, 
     searchQuery,
     viewMode,
+    isRandomSort,
+    triggerRandomSort,
+    resetSortMode,
     setIsBookmarkModalOpen,
     setEditingBookmark,
     setTargetLockCategory,
@@ -66,7 +70,7 @@ function MainApp() {
         {/* Category Header & Info */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800/80">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
                 <span>{activeCategory?.name}</span>
                 {activeCategory?.isProtected && (
@@ -76,6 +80,12 @@ function MainApp() {
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
                 {filteredBookmarks.length} 個網址
               </span>
+              {isRandomSort && (
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30 animate-pulse flex items-center gap-1">
+                  <Shuffle className="w-3 h-3" />
+                  <span>隨機打亂呈列</span>
+                </span>
+              )}
             </div>
             {searchQuery && (
               <p className="text-xs text-indigo-400 mt-1">
@@ -86,6 +96,29 @@ function MainApp() {
 
           {/* Category Manage Action */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={triggerRandomSort}
+              title="點擊隨機打亂當前分頁內容"
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md ${
+                isRandomSort 
+                  ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/30' 
+                  : 'glass-card text-purple-300 hover:text-white hover:bg-purple-950/40 border border-purple-500/30'
+              }`}
+            >
+              <Shuffle className="w-3.5 h-3.5" />
+              <span>{isRandomSort ? '重新隨機洗牌' : '🎲 隨機排序'}</span>
+            </button>
+
+            {isRandomSort && (
+              <button
+                onClick={resetSortMode}
+                className="px-2.5 py-1.5 rounded-xl glass-card text-xs text-slate-400 hover:text-white transition-colors"
+                title="恢復預設排序"
+              >
+                重置
+              </button>
+            )}
+
             <button
               onClick={() => handleOpenCategoryModal(activeCategory)}
               className="px-3 py-1.5 rounded-xl glass-card text-xs text-slate-300 hover:text-white hover:bg-slate-800 flex items-center gap-1.5 transition-all"
