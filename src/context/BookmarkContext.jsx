@@ -200,6 +200,20 @@ export function BookmarkProvider({ children }) {
     saveCategories(updated);
   };
 
+  const renameCategory = (id, newName) => {
+    if (!newName || !newName.trim()) return;
+    const updated = categories.map(c => c.id === id ? { ...c, name: newName.trim() } : c);
+    saveCategories(updated);
+  };
+
+  const reorderCategories = (fromIndex, toIndex) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= categories.length || toIndex >= categories.length) return;
+    const updated = [...categories];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    saveCategories(updated);
+  };
+
   const deleteCategory = (id) => {
     if (categories.length <= 1) return; // Keep at least one category
     const updatedCats = categories.filter(c => c.id !== id);
@@ -309,6 +323,8 @@ export function BookmarkProvider({ children }) {
       lockCategory,
       addCategory,
       updateCategory,
+      renameCategory,
+      reorderCategories,
       deleteCategory,
       addBookmark,
       updateBookmark,
