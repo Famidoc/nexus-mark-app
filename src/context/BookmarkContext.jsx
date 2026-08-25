@@ -78,16 +78,42 @@ export function BookmarkProvider({ children }) {
   const { currentUser, isGuest } = useAuth();
 
   const [categories, setCategories] = useState(() => {
-    const localCats = localStorage.getItem('bm_categories');
-    return localCats ? JSON.parse(localCats) : INITIAL_CATEGORIES;
+    try {
+      const localCats = localStorage.getItem('bm_categories');
+      if (localCats) {
+        const parsed = JSON.parse(localCats);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_CATEGORIES;
   });
 
   const [bookmarks, setBookmarks] = useState(() => {
-    const localBms = localStorage.getItem('bm_bookmarks');
-    return localBms ? JSON.parse(localBms) : INITIAL_BOOKMARKS;
+    try {
+      const localBms = localStorage.getItem('bm_bookmarks');
+      if (localBms) {
+        const parsed = JSON.parse(localBms);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_BOOKMARKS;
   });
 
-  const [activeCategoryId, setActiveCategoryId] = useState('cat-default');
+  const [activeCategoryId, setActiveCategoryIdState] = useState(() => {
+    try {
+      const savedActive = localStorage.getItem('bm_active_category_id');
+      const localCats = localStorage.getItem('bm_categories');
+      const parsedCats = localCats ? JSON.parse(localCats) : INITIAL_CATEGORIES;
+      if (savedActive && Array.isArray(parsedCats) && parsedCats.some(c => c.id === savedActive)) {
+        return savedActive;
+      }
+      if (Array.isArray(parsedCats) && parsedCats.length > 0) {
+        return parsedCats[0].id;
+      }
+    } catch (e) {}
+    return 'cat-default';
+  });
+
   const [unlockedCategories, setUnlockedCategories] = useState({}); // { [catId]: true }
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
@@ -99,13 +125,37 @@ export function BookmarkProvider({ children }) {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [targetLockCategory, setTargetLockCategory] = useState(null);
 
-  // Synchronize LocalStorage
+  const handleSetActiveCategoryId = (id) => {
+    setActiveCategoryIdState(id);
+    setIsRandomSort(false); // Reset random sort when switching category
+    try {
+      localStorage.setItem('bm_active_category_id', id);
+    } catch (e) {}
+  };
+
+  // Synchronize LocalStorage Cache whenever categories or bookmarks change
   useEffect(() => {
-    if (isGuest || !currentUser) {
+    try {
       localStorage.setItem('bm_categories', JSON.stringify(categories));
       localStorage.setItem('bm_bookmarks', JSON.stringify(bookmarks));
+    } catch (e) {
+      console.error('LocalStorage sync error:', e);
     }
-  }, [categories, bookmarks, isGuest, currentUser]);
+  }, [categories, bookmarks]);
+
+  // Ensure activeCategoryId always points to an existing category
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      const exists = categories.some(c => c.id === activeCategoryId);
+      if (!exists) {
+        const fallbackId = categories[0].id;
+        setActiveCategoryIdState(fallbackId);
+        try {
+          localStorage.setItem('bm_active_category_id', fallbackId);
+        } catch (e) {}
+      }
+    }
+  }, [categories, activeCategoryId]);
 
   // Firestore Realtime Sync when logged in
   useEffect(() => {
@@ -116,7 +166,11 @@ export function BookmarkProvider({ children }) {
       const catRef = doc(db, 'users', userUid, 'data', 'categories');
       const unsubCat = onSnapshot(catRef, (docSnap) => {
         if (docSnap.exists()) {
-          setCategories(docSnap.data().items || []);
+          const items = docSnap.data().items || [];
+          setCategories(items);
+          try {
+            localStorage.setItem('bm_categories', JSON.stringify(items));
+          } catch (e) {}
         } else {
           // Initialize user data in Firestore
           setDoc(catRef, { items: INITIAL_CATEGORIES });
@@ -127,7 +181,11 @@ export function BookmarkProvider({ children }) {
       const bmRef = doc(db, 'users', userUid, 'data', 'bookmarks');
       const unsubBm = onSnapshot(bmRef, (docSnap) => {
         if (docSnap.exists()) {
-          setBookmarks(docSnap.data().items || []);
+          const items = docSnap.data().items || [];
+          setBookmarks(items);
+          try {
+            localStorage.setItem('bm_bookmarks', JSON.stringify(items));
+          } catch (e) {}
         } else {
           setDoc(bmRef, { items: INITIAL_BOOKMARKS });
         }
@@ -143,6 +201,9 @@ export function BookmarkProvider({ children }) {
   // Helper to persist changes to Cloud or Local
   const saveCategories = (newCats) => {
     setCategories(newCats);
+    try {
+      localStorage.setItem('bm_categories', JSON.stringify(newCats));
+    } catch (e) {}
     if (currentUser && isFirebaseAvailable && db) {
       const catRef = doc(db, 'users', currentUser.uid, 'data', 'categories');
       setDoc(catRef, { items: newCats }, { merge: true });
@@ -151,6 +212,9 @@ export function BookmarkProvider({ children }) {
 
   const saveBookmarks = (newBms) => {
     setBookmarks(newBms);
+    try {
+      localStorage.setItem('bm_bookmarks', JSON.stringify(newBms));
+    } catch (e) {}
     if (currentUser && isFirebaseAvailable && db) {
       const bmRef = doc(db, 'users', currentUser.uid, 'data', 'bookmarks');
       setDoc(bmRef, { items: newBms }, { merge: true });
@@ -314,10 +378,7 @@ export function BookmarkProvider({ children }) {
       categories,
       bookmarks,
       activeCategoryId,
-      setActiveCategoryId: (id) => {
-        setActiveCategoryId(id);
-        setIsRandomSort(false); // Reset random sort when switching category
-      },
+      setActiveCategoryId: handleSetActiveCategoryId,
       checkCategoryAccess,
       unlockCategory,
       lockCategory,
