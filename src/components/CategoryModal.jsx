@@ -3,11 +3,12 @@ import { X, FolderPlus, Lock, Shield, Check } from 'lucide-react';
 import { useBookmarks } from '../context/BookmarkContext';
 
 export default function CategoryModal({ isOpen, onClose, initialData = null }) {
-  const { addCategory, updateCategory } = useBookmarks();
+  const { categories, addCategory, updateCategory, showToast } = useBookmarks();
 
   const [name, setName] = useState('');
   const [isProtected, setIsProtected] = useState(false);
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -19,26 +20,51 @@ export default function CategoryModal({ isOpen, onClose, initialData = null }) {
       setIsProtected(false);
       setPassword('');
     }
+    setIsSubmitting(false);
   }, [initialData, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    const trimmedName = name.trim();
+    if (!trimmedName || isSubmitting) return;
 
-    if (initialData) {
-      updateCategory(initialData.id, {
-        name: name.trim(),
-        isProtected,
-        passwordHash: isProtected ? (password || '1234') : '',
-        icon: isProtected ? 'Lock' : 'Folder'
-      });
-    } else {
-      addCategory(name.trim(), isProtected, isProtected ? (password || '1234') : '');
+    // 防止同名重複建立（非強制阻擋，若同名可友善提示確認）
+    if (!initialData && categories.some(c => c.name.toLowerCase() === trimmedName.toLowerCase())) {
+      const confirmDup = window.confirm(`分類「${trimmedName}」已經存在，您確定要再建立一個同名分類嗎？`);
+      if (!confirmDup) return;
     }
 
-    onClose();
+    setIsSubmitting(true);
+    try {
+      if (initialData) {
+        updateCategory(initialData.id, {
+          name: trimmedName,
+          isProtected,
+          passwordHash: isProtected ? (password || '1234') : '',
+          icon: isProtected ? 'Lock' : 'Folder'
+        });
+        if (showToast) {
+          showToast(`已更新分類「${trimmedName}」`, 'success');
+        }
+      } else {
+        addCategory(trimmedName, isProtected, isProtected ? (password || '1234') : '');
+        if (showToast) {
+          showToast(`已新增分類「${trimmedName}」`, 'success');
+        }
+      }
+
+      setName('');
+      onClose();
+    } catch (err) {
+      console.error('Category operation failed:', err);
+      if (showToast) {
+        showToast('分類儲存失敗，請重試', 'error');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -113,10 +139,11 @@ export default function CategoryModal({ isOpen, onClose, initialData = null }) {
             </button>
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all"
+              disabled={isSubmitting || !name.trim()}
+              className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all"
             >
               <Check className="w-4 h-4 stroke-[3]" />
-              <span>{initialData ? '更新分類' : '建立分類'}</span>
+              <span>{isSubmitting ? '處理中...' : (initialData ? '更新分類' : '建立分類')}</span>
             </button>
           </div>
         </form>

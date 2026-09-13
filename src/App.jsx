@@ -10,6 +10,7 @@ import BookmarkModal from './components/BookmarkModal';
 import PasswordLockModal from './components/PasswordLockModal';
 import AuthModal from './components/AuthModal';
 import CategoryModal from './components/CategoryModal';
+import Toast from './components/Toast';
 
 import { 
   Bookmark, 
@@ -215,6 +216,7 @@ function MainApp() {
         onClose={() => setIsCategoryModalOpen(false)} 
         initialData={editingCategory} 
       />
+      <Toast />
 
     </div>
   );

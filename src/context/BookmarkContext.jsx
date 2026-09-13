@@ -125,7 +125,17 @@ export function BookmarkProvider({ children }) {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [targetLockCategory, setTargetLockCategory] = useState(null);
 
-  const handleSetActiveCategoryId = (id) => {
+  const [toast, setToast] = useState(null); // { message: '', type: 'success' | 'info' | 'warning' | 'error', id: number }
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type, id: Date.now() });
+  };
+
+  const hideToast = () => {
+    setToast(null);
+  };
+
+  const setActiveCategoryId = (id) => {
     setActiveCategoryIdState(id);
     setIsRandomSort(false); // Reset random sort when switching category
     try {
@@ -378,7 +388,7 @@ export function BookmarkProvider({ children }) {
       categories,
       bookmarks,
       activeCategoryId,
-      setActiveCategoryId: handleSetActiveCategoryId,
+      setActiveCategoryId,
       checkCategoryAccess,
       unlockCategory,
       lockCategory,
@@ -409,7 +419,10 @@ export function BookmarkProvider({ children }) {
       isPasswordModalOpen,
       setIsPasswordModalOpen,
       targetLockCategory,
-      setTargetLockCategory
+      setTargetLockCategory,
+      toast,
+      showToast,
+      hideToast
     }}>
       {children}
     </BookmarkContext.Provider>

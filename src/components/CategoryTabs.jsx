@@ -28,7 +28,8 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
     setIsPasswordModalOpen,
     deleteCategory,
     reorderCategories,
-    renameCategory
+    renameCategory,
+    showToast
   } = useBookmarks();
 
   // Inline Editing States
@@ -76,6 +77,7 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
   const saveEditing = () => {
     if (editingCatId && editingName.trim()) {
       renameCategory(editingCatId, editingName.trim());
+      if (showToast) showToast(`已更新分類名稱為「${editingName.trim()}」`, 'success');
     }
     setEditingCatId(null);
     setEditingName('');
@@ -340,6 +342,7 @@ export default function CategoryTabs({ onOpenCategoryModal }) {
                           e.stopPropagation();
                           if (window.confirm(`確定要刪除分類「${cat.name}」及其下的所有書籤嗎？`)) {
                             deleteCategory(cat.id);
+                            if (showToast) showToast(`已刪除分類「${cat.name}」`, 'info');
                           }
                         }}
                         className="p-1 hover:text-rose-400 hover:bg-slate-700/50 rounded transition-colors"

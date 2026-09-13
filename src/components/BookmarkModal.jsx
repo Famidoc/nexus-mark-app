@@ -12,7 +12,8 @@ export default function BookmarkModal() {
     updateBookmark,
     categories,
     activeCategoryId,
-    checkTabDuplicates
+    checkTabDuplicates,
+    showToast
   } = useBookmarks();
 
   const [url, setUrl] = useState('');
@@ -118,8 +119,10 @@ export default function BookmarkModal() {
 
     if (editingBookmark) {
       updateBookmark(editingBookmark.id, payload);
+      if (showToast) showToast(`已更新書籤「${payload.title}」`, 'success');
     } else {
       addBookmark(payload);
+      if (showToast) showToast(`已新增書籤「${payload.title}」`, 'success');
     }
 
     setIsBookmarkModalOpen(false);
